@@ -29,7 +29,7 @@ export default function Hero() {
             transition={{ delay: 0.2 }}
             className="mt-6 text-lg text-slate-300 max-w-xl"
           >
-            IssueFlow is a modern, developer-friendly issue tracker with Kanban
+            Saunf is a modern, developer-friendly issue tracker with Kanban
             workflows, real-time updates, and role-based access — built for teams
             who move fast.
           </motion.p>
