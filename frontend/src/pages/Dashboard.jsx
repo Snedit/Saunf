@@ -1,13 +1,48 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import CreateProjectModal from "../components/CreateProjectModal.jsx";
 
-const projects = [
-  { id: 1, name: "IssueFlow Core", issues: 12 },
-  { id: 2, name: "Frontend Revamp", issues: 7 },
-  { id: 3, name: "API Gateway", issues: 3 },
-];
 
 export default function Dashboard() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/projects`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setProjects(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
+  }, []);
+
+  const handleProjectCreated = (project) => {
+    setProjects((prev) => [project, ...prev]);
+    setShowCreate(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center text-slate-400">
+        Loading projects…
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-8 py-10">
       {/* Header */}
@@ -19,62 +54,37 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <Link
-          to="/create-project"
+        <button
+          onClick={() => setShowCreate(true)}
           className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-600/30 transition"
         >
           + New Project
-        </Link>
+        </button>
       </div>
 
       {/* Projects Grid */}
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={{
-          hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 },
-          },
-        }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map((p) => (
-          <motion.div
-            key={p.id}
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              show: { opacity: 1, y: 0 },
-            }}
+          <Link
+            key={p._id}
+            to={`/project/${p._id}`}
+            className="group block bg-slate-900/80 p-6 rounded-2xl border border-slate-800 hover:border-indigo-500 transition"
           >
-            <Link
-              to={`/project/${p.id}`}
-              className="group block bg-slate-900/80 backdrop-blur p-6 rounded-2xl border border-slate-800 hover:border-indigo-500 transition shadow-lg hover:shadow-indigo-500/20"
-            >
-              <div className="flex items-start justify-between">
-                <h3 className="text-lg font-semibold group-hover:text-indigo-400 transition">
-                  {p.name}
-                </h3>
-                <span className="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded-md">
-                  Kanban
-                </span>
-              </div>
-
-              <p className="text-slate-400 text-sm mt-2">
-                {p.issues} open issues
-              </p>
-
-              <div className="mt-6 flex items-center justify-between text-xs text-slate-500">
-                <span>Last updated today</span>
-                <span className="group-hover:translate-x-1 transition">
-                  →
-                </span>
-              </div>
-            </Link>
-          </motion.div>
+            <h3 className="text-lg font-semibold">{p.name}</h3>
+            <p className="text-slate-400 text-sm mt-2">
+              {p.issueCount ?? 0} issues
+            </p>
+          </Link>
         ))}
-      </motion.div>
+      </div>
+
+      {/* Create Project Modal */}
+      {showCreate && (
+        <CreateProjectModal
+          onClose={() => setShowCreate(false)}
+          onCreated={handleProjectCreated}
+        />
+      )}
     </div>
   );
 }
