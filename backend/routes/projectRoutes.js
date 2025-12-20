@@ -19,7 +19,6 @@ const projectRoutes = Router();
 projectRoutes.post(
   "/",
   auth,
-  allowRoles("admin"),
   async (req, res, next) => {
     try {
       const { name, key, description } = req.body;

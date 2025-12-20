@@ -1,5 +1,6 @@
+import axios from "axios";
 import { useState } from "react";
-
+import { motion } from "framer-motion";
 function CreateProjectModal({ onClose, onCreated }) {
   const [name, setName] = useState("");
   const [key, setKey] = useState("");
@@ -14,7 +15,7 @@ function CreateProjectModal({ onClose, onCreated }) {
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/projects`,
+        `http://localhost:5000/api/projects`,
         { name, key, description },
         {
           headers: { Authorization: `Bearer ${token}` },

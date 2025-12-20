@@ -15,7 +15,7 @@ export default function Dashboard() {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/projects`,
+          `http://localhost:5000/api/projects`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
