@@ -1,4 +1,7 @@
+import axios from "axios";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const columns = [
   { id: "todo", label: "To Do", color: "border-indigo-500" },
@@ -7,6 +10,34 @@ const columns = [
 ];
 
 export default function Project() {
+  const [issues, setIssues] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const {projectId} = useParams();
+  useEffect(()=>{
+    async function fetchIssues()
+    {
+      try{
+        setLoading(true)
+          const token  = localStorage.getItem("token");
+          const res = await axios.get(`http://localhost:5000/api/issues/project/${projectId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          
+          
+          setIssues(res.data);
+      }
+      catch(err)
+      {
+        console.log(err);
+      }
+      finally{
+        setLoading(false);
+      }
+    }
+    fetchIssues();
+  }, [])
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -24,6 +55,7 @@ export default function Project() {
       </div>
 
       {/* Board */}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {columns.map((col) => (
           <div
@@ -69,6 +101,7 @@ export default function Project() {
             </div>
           </div>
         ))}
+        {issues.length === 0 && (<p>No issues</p>)}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ return (
 <Route path="/login" element={<Login />} />
 <Route path="/register" element={<Register />} />
 <Route path="/dashboard" element={<Dashboard />} />
-<Route path="/project/:id" element={<Project />} />
+<Route path="/project/:projectId" element={<Project />} />
 </Routes>
 </div>
 );
