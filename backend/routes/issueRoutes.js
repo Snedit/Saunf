@@ -18,15 +18,11 @@ const issueRoutes = Router();
 // create issue for a particular project;
 issueRoutes.post("/:projectId", auth, projectAccess, async (req, res, next) => {
   try {
-    const { title, description, type, priority, assignee } =
-      req.body;
-
+    const { title, description, type, priority, assignee, status } = req.body;
     const projectId = req.params.projectId;
 
-    if (!title || !projectId)
-      return res
-        .status(400)
-        .json({ message: "Title and Project ID is needed." });
+    if (!title)
+      return res.status(400).json({ message: "Title is required" });
 
     const issue = await Issue.create({
       title,
@@ -34,14 +30,23 @@ issueRoutes.post("/:projectId", auth, projectAccess, async (req, res, next) => {
       type,
       priority,
       assignee,
+      status: status || "todo",
       projectId,
       createdBy: req.user._id,
     });
-    return res.status(201).json({ message: "Issue submitted" });
+
+    // 🔥 THIS IS THE IMPORTANT PART
+    const populatedIssue = await issue.populate(
+      "assignee",
+      "name email"
+    );
+
+    res.status(201).json(populatedIssue);
   } catch (err) {
     next(err);
   }
 });
+
 
 issueRoutes.get(
   "/project/:projectId",

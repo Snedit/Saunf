@@ -1,18 +1,21 @@
 import axios from "axios";
+import { motion } from "framer-motion";
 import { useState } from "react";
 
-function AddIssueModal({ projectId, onClose, onCreated }) {
+export default function AddIssueModal({ projectId, onClose, onCreated }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState("task");
-  const [priority, setPriority] = useState("low");
+  const [type, setType] = useState("Task");
+  const [priority, setPriority] = useState("Medium");
+  const [status, setStatus] = useState("todo");
+  const [assignee, setAssignee] = useState(null); // 🔥 backend expects it
   const [loading, setLoading] = useState(false);
 
-  const handleCreate = async () => {
-    if (!title) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      setLoading(true);
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
@@ -22,6 +25,8 @@ function AddIssueModal({ projectId, onClose, onCreated }) {
           description,
           type,
           priority,
+          status,
+          assignee, // null is fine
         },
         {
           headers: {
@@ -30,10 +35,11 @@ function AddIssueModal({ projectId, onClose, onCreated }) {
         }
       );
 
-      onCreated(res.data); // optimistic update
+      // push new issue into board
+      onCreated(res.data);
       onClose();
     } catch (err) {
-      console.error(err.response?.data || err.message);
+      console.error("Issue creation failed:", err.response?.data || err);
     } finally {
       setLoading(false);
     }
@@ -41,65 +47,81 @@ function AddIssueModal({ projectId, onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <motion.div
+      <motion.form
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-slate-900 rounded-2xl p-6 w-full max-w-md border border-slate-800"
+        onSubmit={handleSubmit}
+        className="bg-slate-900 w-full max-w-md rounded-2xl p-6 border border-slate-800"
       >
-        <h2 className="text-xl font-bold mb-4">Create Issue</h2>
+        <h2 className="text-xl font-semibold mb-4">Create Issue</h2>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <input
-            placeholder="Issue title"
-            className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700"
+            value={title}
             onChange={(e) => setTitle(e.target.value)}
+            placeholder="Issue title"
+            required
+            className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none"
           />
 
           <textarea
-            placeholder="Description"
-            className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700"
+            value={description}
             onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description"
+            className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none"
           />
 
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <select
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
               value={type}
               onChange={(e) => setType(e.target.value)}
+              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
             >
-              <option value="task">Task</option>
-              <option value="bug">Bug</option>
-              <option value="story">Story</option>
+              <option>Task</option>
+              <option>Bug</option>
+              <option>Feature</option>
             </select>
 
             <select
-              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
+              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
             </select>
           </div>
+
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 w-full"
+          >
+            <option value="todo">To Do</option>
+            <option value="in-progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
           <button
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white"
+            className="px-4 py-2 text-sm text-slate-400 hover:text-white"
           >
             Cancel
           </button>
+
           <button
-            onClick={handleCreate}
+            type="submit"
             disabled={loading}
-            className="bg-indigo-600 px-5 py-2 rounded-lg font-semibold"
+            className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 font-semibold"
           >
             {loading ? "Creating..." : "Create"}
           </button>
         </div>
-      </motion.div>
+      </motion.form>
     </div>
   );
 }
