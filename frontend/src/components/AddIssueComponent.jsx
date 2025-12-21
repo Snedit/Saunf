@@ -37,7 +37,7 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
 
       // push new issue into board
       onCreated(res.data);
-      onClose();
+      // onClose();
     } catch (err) {
       console.error("Issue creation failed:", err.response?.data || err);
     } finally {
@@ -79,7 +79,7 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
             >
               <option>Task</option>
               <option>Bug</option>
-              <option>Feature</option>
+              <option>Story</option>
             </select>
 
             <select
