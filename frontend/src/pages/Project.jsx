@@ -50,7 +50,7 @@ export default function Project() {
 
   const handleIssueCreated = (newIssue) => {
     setIssues((prev) => [newIssue, ...prev]);
-    setIsAddIssueOpen(false);
+   setIsAddIssueOpen(false);
   };
 
   /* ---------------- RENDER ---------------- */

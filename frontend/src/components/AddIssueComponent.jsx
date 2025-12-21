@@ -23,8 +23,8 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
         {
           title,
           description,
-          type,
-          priority,
+          type: type.toLowerCase(),
+          priority: priority.toLowerCase(),
           status,
           assignee, // null is fine
         },
