@@ -1,23 +1,63 @@
 import { Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar.jsx";
-import Hero from "./pages/Hero.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import Project from "./pages/Project.jsx";
 
+import PublicLayout from "./layouts/PublicLayout";
+import AppLayout from "./layouts/AppLayout";
+
+import Hero from "./pages/Hero";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Project from "./pages/Project";
 
 export default function App() {
-return (
-<div className="min-h-screen bg-slate-950 text-slate-100">
-<Navbar />
-<Routes>
-<Route path="/" element={<Hero />} />
-<Route path="/login" element={<Login />} />
-<Route path="/register" element={<Register />} />
-<Route path="/dashboard" element={<Dashboard />} />
-<Route path="/project/:projectId" element={<Project />} />
-</Routes>
-</div>
-);
+  return (
+    <Routes>
+      {/* Public pages */}
+      <Route
+        path="/"
+        element={
+          <PublicLayout>
+            <Hero />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/login"
+        element={
+          <PublicLayout>
+            <Login />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/register"
+        element={
+          <PublicLayout>
+            <Register />
+          </PublicLayout>
+        }
+      />
+
+      {/* App pages (with sidebar) */}
+      <Route
+        path="/dashboard"
+        element={
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        }
+      />
+
+      <Route
+        path="/project/:projectId"
+        element={
+          <AppLayout>
+            <Project />
+          </AppLayout>
+        }
+      />
+    </Routes>
+  );
 }

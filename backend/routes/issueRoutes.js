@@ -13,8 +13,10 @@ import Issue from "../models/IssueSchema.js";
 import projectAccess from "../middlewares/projectAccessMiddleware.js";
 import issueAccess from "../middlewares/issueAccessMiddleware.js";
 import allowRoles from "../middlewares/roleMiddleware.js";
+import rateLimit from "../middlewares/RateLimitter.js";
 
 const issueRoutes = Router();
+issueRoutes.use(rateLimit);
 // create issue for a particular project;
 issueRoutes.post("/:projectId", auth, projectAccess, async (req, res, next) => {
   try {

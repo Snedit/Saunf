@@ -3,8 +3,10 @@ import bcrypt from "bcryptjs";
 import User from "../models/UserSchema.js";
 import auth from "../middlewares/authMiddleware.js";
 import allowRoles from "../middlewares/roleMiddleware.js";
+import rateLimit from "../middlewares/RateLimitter.js";
 
 const userRoutes = Router();
+userRoutes.use(rateLimit);
 
 /* ---------------- GET OWN PROFILE ---------------- */
 userRoutes.get("/me", auth, async (req, res, next) => {

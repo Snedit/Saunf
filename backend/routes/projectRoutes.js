@@ -13,8 +13,11 @@ import auth from "../middlewares/authMiddleware.js";
 import allowRoles from "../middlewares/roleMiddleware.js";
 import projectAccess from "../middlewares/projectAccessMiddleware.js";
 import User from "../models/UserSchema.js";
-const projectRoutes = Router();
+import rateLimit from "../middlewares/RateLimitter.js";
 
+
+const projectRoutes = Router();
+projectRoutes.use(rateLimit);
 // only admins can create new project
 projectRoutes.post(
   "/",

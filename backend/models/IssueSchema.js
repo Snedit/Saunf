@@ -3,7 +3,9 @@ const issueSchema = new Schema(
   {
     title: { type: String, required: true },
     description: { type: String },
-    type: { type: String, enum: ["bug", "task", "story"], default: "task" },
+    type: { type: String,
+       enum: ["bug", "task", "story"],
+        default: "task" },
     status: {
       type: String,
       enum: ["todo", "in-progress", "done"],
