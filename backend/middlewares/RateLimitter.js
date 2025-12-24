@@ -23,7 +23,7 @@ async function rateLimit(req, res, next)
     }
     catch(err)
     {
-        console.log("");
+        console.log("rate limitter fault");
         next();
         
     }
