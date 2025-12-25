@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Project from "./pages/Project";
-
+import Issues from "./pages/Issues";
 export default function App() {
   return (
     <Routes>
@@ -46,6 +46,14 @@ export default function App() {
         element={
           <AppLayout>
             <Dashboard />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/issues"
+        element={
+          <AppLayout>
+            <Issues />
           </AppLayout>
         }
       />
