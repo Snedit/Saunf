@@ -14,10 +14,59 @@ import allowRoles from "../middlewares/roleMiddleware.js";
 import projectAccess from "../middlewares/projectAccessMiddleware.js";
 import User from "../models/UserSchema.js";
 import rateLimit from "../middlewares/RateLimitter.js";
-
+import projectOwnerOnly from "../middlewares/projectOwnerOnly.js"
 
 const projectRoutes = Router();
 projectRoutes.use(rateLimit);
+
+// add members
+projectRoutes.post(
+  "/:projectId/members",
+  auth,
+  projectOwnerOnly,
+  async (req, res, next) => {
+    try {
+      const { email } = req.body;
+
+      if (!email)
+        return res.status(400).json({ message: "Email is required" });
+
+      //  Find user by email
+      const user = await User.findOne({ email });
+      if (!user)
+        return res.status(404).json({ message: "User not found" });
+
+      //  Prevent self-add (optional but clean)
+      if (user._id.toString() === req.user._id.toString())
+        return res.status(400).json({ message: "You are already the owner" });
+
+      // Check if already member
+      const alreadyMember = req.project.members.some(
+        (id) => id.toString() === user._id.toString()
+      );
+
+      if (alreadyMember)
+        return res.status(400).json({ message: "User already a member" });
+
+      // 4️⃣ Add member
+      req.project.members.push(user._id);
+      await req.project.save();
+
+      res.status(200).json({
+        message: "Member added successfully",
+        member: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+
 // only admins can create new project
 projectRoutes.post(
   "/",

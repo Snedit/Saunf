@@ -17,6 +17,20 @@ import rateLimit from "../middlewares/RateLimitter.js";
 
 const issueRoutes = Router();
 issueRoutes.use(rateLimit);
+
+issueRoutes.get('/', auth, async (req, res, next) =>{
+  try {
+      const userId  = req.user._id;
+
+      const Issues  = Issue.find({createdBy: userId});
+
+      return res.status(200).json({Issues});
+
+  } catch (err) {
+    next(err); 
+  }
+})
+
 // create issue for a particular project;
 issueRoutes.post("/:projectId", auth, projectAccess, async (req, res, next) => {
   try {
