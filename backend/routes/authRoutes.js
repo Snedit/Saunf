@@ -105,4 +105,17 @@ authRoutes.get("/me", auth, async (req, res) => {
   res.json(req.user);
 });
 
+authRoutes.get('/validate', auth, async (req, res)=>{
+  if(req.user)
+  {
+    return res.status(200).json({success: true});
+  }
+  else
+  {
+    return res.status(411).json({success: false, message: "token expired"});
+  }
+});
+
+
+
 export default authRoutes;
