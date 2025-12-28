@@ -1,7 +1,7 @@
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AddIssueModal from "../components/AddIssueComponent.jsx";
 
 const columns = [
@@ -12,7 +12,7 @@ const columns = [
 
 export default function Project() {
   const { projectId } = useParams();
-
+  const navigate  = useNavigate();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddIssueOpen, setIsAddIssueOpen] = useState(false);
@@ -117,6 +117,8 @@ export default function Project() {
                   {columnIssues.map((issue) => (
                     <motion.div
                       key={issue._id}
+                      onClick={() => navigate(`/issue/${issue._id}`)}
+
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       className="bg-slate-800 rounded-xl p-4 border border-slate-700 cursor-pointer hover:border-indigo-500 transition"
