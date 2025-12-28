@@ -108,6 +108,8 @@ authRoutes.get("/me", auth, async (req, res) => {
 authRoutes.get('/validate', auth, async (req, res)=>{
   if(req.user)
   {
+    console.log("validate route hit");
+    
     return res.status(200).json({success: true});
   }
   else

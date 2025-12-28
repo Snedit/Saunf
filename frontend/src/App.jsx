@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 
 import PublicLayout from "./layouts/PublicLayout";
 import AppLayout from "./layouts/AppLayout";
+import RequireAuth from "./components/RequireAuth";
 
 import Hero from "./pages/Hero";
 import Login from "./pages/Login";
@@ -9,6 +10,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Project from "./pages/Project";
 import Issues from "./pages/Issues";
+
 export default function App() {
   return (
     <Routes>
@@ -40,30 +42,37 @@ export default function App() {
         }
       />
 
-      {/* App pages (with sidebar) */}
+      {/* Protected pages */}
       <Route
         path="/dashboard"
         element={
-          <AppLayout>
-            <Dashboard />
-          </AppLayout>
+          <RequireAuth>
+            <AppLayout>
+              <Dashboard />
+            </AppLayout>
+          </RequireAuth>
         }
       />
+
       <Route
         path="/issues"
         element={
-          <AppLayout>
-            <Issues />
-          </AppLayout>
+          <RequireAuth>
+            <AppLayout>
+              <Issues />
+            </AppLayout>
+          </RequireAuth>
         }
       />
 
       <Route
         path="/project/:projectId"
         element={
-          <AppLayout>
-            <Project />
-          </AppLayout>
+          <RequireAuth>
+            <AppLayout>
+              <Project />
+            </AppLayout>
+          </RequireAuth>
         }
       />
     </Routes>

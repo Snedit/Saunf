@@ -13,11 +13,16 @@ export default function RequireAuth({ children }) {
       setLoading(false);
       return;
     }
+    else{
 
-    validateToken(token).then((valid) => {
-      setAllowed(valid);
-      setLoading(false);
-    });
+      validateToken(token).then((valid) => {
+        console.log("is token valid? " , valid);
+        
+        setAllowed(valid);
+        setLoading(false);
+      });
+    }
+    
   }, []);
 
   if (loading)
