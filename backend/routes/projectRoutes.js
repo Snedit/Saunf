@@ -15,7 +15,7 @@ import projectAccess from "../middlewares/projectAccessMiddleware.js";
 import User from "../models/UserSchema.js";
 import rateLimit from "../middlewares/RateLimitter.js";
 import projectOwnerOnly from "../middlewares/projectOwnerOnly.js"
-
+import Issue from "../models/IssueSchema.js";
 const projectRoutes = Router();
 projectRoutes.use(rateLimit);
 
@@ -96,15 +96,39 @@ projectRoutes.post(
 /* ---------------- GET USER PROJECTS ---------------- */
 projectRoutes.get("/", auth, async (req, res, next) => {
   try {
-    const projects = await Project.find({
-      members: req.user._id,
-    });
+    const projects = await Project.aggregate([
+      {
+        $match: {
+          members: req.user._id,
+        },
+      },
+      {
+        $lookup: {
+          from: "issues",              // Mongo auto-plural
+          localField: "_id",
+          foreignField: "projectId",   // IMPORTANT
+          as: "issues",
+        },
+      },
+      {
+        $addFields: {
+          issueCount: { $size: "$issues" },
+        },
+      },
+      {
+        $project: {
+          issues: 0, // drop heavy array
+        },
+      },
+    ]);
 
     res.json(projects);
   } catch (err) {
     next(err);
   }
 });
+
+
 
 /* ---------------- GET PROJECT BY ID ---------------- */
 projectRoutes.get(
