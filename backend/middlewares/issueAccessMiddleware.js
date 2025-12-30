@@ -3,7 +3,7 @@ import Issue from '../models/IssueSchema.js';
 const issueAccess = async (req, res , next)=>{
 
 
-    const issue  = Issue.findById(req.params.issueId);
+    const issue  = await Issue.findById(req.params.issueId);
     if(!issue ||
         (issue.assignee.toString() !== req.user._id.toString()
         && issue.createdBy.toString() !== req.user._id.toString()
