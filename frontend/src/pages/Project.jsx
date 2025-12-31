@@ -57,21 +57,33 @@ export default function Project() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Kanban Board</h1>
-          <p className="text-slate-400 text-sm">
-            Track issues across your workflow
-          </p>
-        </div>
+     <div className="flex items-center justify-between mb-8">
+  <div>
+    <h1 className="text-3xl font-bold">Kanban Board</h1>
+    <p className="text-slate-400 text-sm">
+      Track issues across your workflow
+    </p>
+  </div>
 
-        <button
-          onClick={toggleAddIssue}
-          className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition font-semibold shadow-lg shadow-indigo-600/30"
-        >
-          + New Issue
-        </button>
-      </div>
+  <div className="flex gap-3">
+    {/* Members button */}
+    <button
+      onClick={() => navigate(`/project/${projectId}/members`)}
+      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition font-medium border border-slate-700"
+    >
+      👥 Members
+    </button>
+
+    {/* New issue */}
+    <button
+      onClick={toggleAddIssue}
+      className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition font-semibold shadow-lg shadow-indigo-600/30"
+    >
+      + New Issue
+    </button>
+  </div>
+</div>
+
 
       {/* Add Issue Modal */}
       {isAddIssueOpen && (
