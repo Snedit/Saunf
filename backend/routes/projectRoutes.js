@@ -66,6 +66,23 @@ projectRoutes.post(
   }
 );
 
+projectRoutes.get('/:projectId/members', auth, projectAccess, async (req, res) => {
+  try {
+    const project = await req.project.populate({
+      path: "members",
+      select: "name email"
+    });
+
+    return res.status(200).json({
+      members: project.members,
+      message: "Members fetched!"
+    });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ message: "Error fetching members!" });
+  }
+});
+
 
 // only admins can create new project
 projectRoutes.post(

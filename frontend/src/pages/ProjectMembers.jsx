@@ -14,7 +14,8 @@ export default function ProjectMembers() {
         `http://localhost:5000/api/projects/${projectId}/members`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMembers(res.data);
+      console.log(res.data)
+      setMembers(res.data.members);
     }
     fetchMembers();
   }, [projectId]);
