@@ -10,7 +10,7 @@ export default function RequireAuth({ children }) {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      setLoading(false);
+       setLoading(false);
       return;
     }
     else{

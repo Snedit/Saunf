@@ -83,4 +83,27 @@ userRoutes.patch(
   }
 );
 
+userRoutes.get('/search', auth, async (req, res)=>{
+  try {
+    
+    const {q} = req.query;
+    if(!q) return res.json([]);
+
+    const users = await User.find({
+      $or:[
+        {
+          email : {$regex : q, $options: "i"}
+        },
+        {name : {$regex : q, $options: "i"}}
+      ]
+    }).select("_id name email").limit(5);
+
+    return res.status(200).json({users, message: "user found"});
+    
+    
+  } catch (error) {
+    console.log('error searching user: ', error.message);
+    return res.status(500).json({ message: "user not found"});
+  }
+})
 export default userRoutes;

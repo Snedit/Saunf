@@ -14,6 +14,7 @@ import projectAccess from "../middlewares/projectAccessMiddleware.js";
 import issueAccess from "../middlewares/issueAccessMiddleware.js";
 import allowRoles from "../middlewares/roleMiddleware.js";
 import rateLimit from "../middlewares/RateLimitter.js";
+import projectOwnerOnly from "../middlewares/projectOwnerOnly.js";
 
 const issueRoutes = Router();
 issueRoutes.use(rateLimit);
@@ -132,7 +133,7 @@ issueRoutes.patch("/:issueId/status", auth, issueAccess, async (req, res, next) 
 });
 
  
-issueRoutes.delete("/:issueId", auth, allowRoles('admin'), issueAccess, async (req, res, next) => {
+issueRoutes.delete("/:issueId", auth, projectOwnerOnly,  async (req, res, next) => {
   try {
     const issue = req.issue;
     if (!issue) return res.status(404).json({ message: "Issue not found" });
