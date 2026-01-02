@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 export default function IssueDetails() {
   const { issueId } = useParams();
   const navigate = useNavigate();
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const [draftStatus, setDraftStatus] = useState(null);
 
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +23,7 @@ export default function IssueDetails() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIssue(res.data);
+        setDraftStatus(res.data.status);
       } catch (err) {
         console.error(err);
       } finally {
@@ -34,10 +38,9 @@ export default function IssueDetails() {
     try {
       setDeleting(true);
       const token = localStorage.getItem("token");
-      await axios.delete(
-        `http://localhost:5000/api/issues/${issueId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`http://localhost:5000/api/issues/${issueId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       navigate(-1); // back to issues list
     } catch (err) {
       alert("Failed to delete issue");
@@ -51,6 +54,25 @@ export default function IssueDetails() {
 
   if (!issue)
     return <p className="text-center text-red-400 mt-24">Issue not found</p>;
+
+  const handleStatusChange = async (newStatus) => {
+    if (newStatus === issue.status) return;
+
+    try {
+      setUpdatingStatus(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.patch(
+        `http://localhost:5000/api/issues/${issueId}/status`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIssue(res.data); // instant UI update
+    } catch {
+      alert("Failed to update status");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -83,9 +105,7 @@ export default function IssueDetails() {
 
         {/* COMMENTS (future-proofed) */}
         <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-6">
-          <h3 className="text-sm font-medium text-slate-300 mb-3">
-            Activity
-          </h3>
+          <h3 className="text-sm font-medium text-slate-300 mb-3">Activity</h3>
           <p className="text-slate-500 text-sm">No comments yet.</p>
         </section>
 
@@ -106,9 +126,37 @@ export default function IssueDetails() {
 
       {/* SIDEBAR */}
       <aside className="sticky top-24 h-fit space-y-5 rounded-xl border border-slate-800 bg-slate-900/70 p-6">
-        <SidebarItem label="Assignee" value={issue.assignee?.name || "Unassigned"} />
+        <SidebarItem
+          label="Assignee"
+          value={issue.assignee?.name || "Unassigned"}
+        />
         <SidebarItem label="Created By" value={issue.createdBy?.name} />
-        <SidebarItem label="Status" value={issue.status} />
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
+            Status
+          </p>
+
+          <select
+            disabled={updatingStatus}
+            onChange={(e)=>setDraftStatus(e.target.value)}
+            value={draftStatus}
+            className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm capitalize focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="todo">To Do</option>
+            <option value="in-progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        {draftStatus !== issue.status && (
+          <button
+            onClick={() => handleStatusChange(draftStatus)}
+            disabled={updatingStatus}
+            className="mt-2 w-full rounded-md bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-sm font-medium disabled:opacity-50"
+          >
+            {updatingStatus ? "Updating…" : "Confirm Status Change"}
+          </button>
+        )}
+
         <SidebarItem label="Priority" value={issue.priority} />
         <SidebarItem label="Type" value={issue.type} />
       </aside>
@@ -121,12 +169,8 @@ export default function IssueDetails() {
 function SidebarItem({ label, value }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-      <p className="text-sm font-medium capitalize text-slate-200">
-        {value}
-      </p>
+      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-sm font-medium capitalize text-slate-200">{value}</p>
     </div>
   );
 }
