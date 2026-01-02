@@ -6,14 +6,20 @@ import { motion } from "framer-motion";
 export default function IssueDetails() {
   const { issueId } = useParams();
   const navigate = useNavigate();
-  const [updatingStatus, setUpdatingStatus] = useState(false);
-
-  const [draftStatus, setDraftStatus] = useState(null);
 
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
+  const [draftStatus, setDraftStatus] = useState(null);
+
+  /* ---------------- COMMENTS (UI ONLY) ---------------- */
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
+  const [postingComment, setPostingComment] = useState(false);
+
+  /* ---------------- FETCH ISSUE ---------------- */
   useEffect(() => {
     (async () => {
       try {
@@ -32,6 +38,7 @@ export default function IssueDetails() {
     })();
   }, [issueId]);
 
+  /* ---------------- DELETE ---------------- */
   const handleDelete = async () => {
     if (!confirm("Delete this issue? This action is irreversible.")) return;
 
@@ -41,20 +48,15 @@ export default function IssueDetails() {
       await axios.delete(`http://localhost:5000/api/issues/${issueId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      navigate(-1); // back to issues list
-    } catch (err) {
+      navigate(-1);
+    } catch {
       alert("Failed to delete issue");
     } finally {
       setDeleting(false);
     }
   };
 
-  if (loading)
-    return <p className="text-center text-slate-400 mt-24">Loading issue…</p>;
-
-  if (!issue)
-    return <p className="text-center text-red-400 mt-24">Issue not found</p>;
-
+  /* ---------------- STATUS UPDATE ---------------- */
   const handleStatusChange = async (newStatus) => {
     if (newStatus === issue.status) return;
 
@@ -66,7 +68,7 @@ export default function IssueDetails() {
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setIssue(res.data); // instant UI update
+      setIssue(res.data);
     } catch {
       alert("Failed to update status");
     } finally {
@@ -74,6 +76,35 @@ export default function IssueDetails() {
     }
   };
 
+  /* ---------------- COMMENT SUBMIT (UI ONLY) ---------------- */
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return;
+
+    setPostingComment(true);
+
+    // TEMP: local UI append (replace with API later)
+    setComments((prev) => [
+      ...prev,
+      {
+        _id: Date.now(),
+        text: commentText,
+        author: { name: "You" },
+        createdAt: new Date(),
+      },
+    ]);
+
+    setCommentText("");
+    setPostingComment(false);
+  };
+
+  /* ---------------- STATES ---------------- */
+  if (loading)
+    return <p className="text-center text-slate-400 mt-24">Loading issue…</p>;
+
+  if (!issue)
+    return <p className="text-center text-red-400 mt-24">Issue not found</p>;
+
+  /* ---------------- UI ---------------- */
   return (
     <div className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
       {/* MAIN */}
@@ -81,8 +112,19 @@ export default function IssueDetails() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
+          className="relative"
         >
-          <h1 className="text-3xl font-semibold tracking-tight">
+          {/* DELETE BUTTON */}
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="absolute top-0 right-0 text-sm px-3 py-1.5 rounded-md 
+                       bg-red-600/90 hover:bg-red-600 disabled:opacity-50"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+
+          <h1 className="text-3xl font-semibold tracking-tight pr-24">
             {issue.title}
           </h1>
 
@@ -103,24 +145,49 @@ export default function IssueDetails() {
           </p>
         </section>
 
-        {/* COMMENTS (future-proofed) */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-6">
-          <h3 className="text-sm font-medium text-slate-300 mb-3">Activity</h3>
-          <p className="text-slate-500 text-sm">No comments yet.</p>
-        </section>
+        {/* COMMENTS */}
+        <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-6 space-y-4">
+          <h3 className="text-sm font-medium text-slate-300">Comments</h3>
 
-        {/* DANGER ZONE */}
-        <section className="border border-red-900/40 bg-red-950/30 rounded-xl p-6">
-          <h3 className="text-sm font-medium text-red-400 mb-2">
-            Delete This Issue?
-          </h3>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-sm px-4 py-2 rounded-md bg-red-600/90 hover:bg-red-600 disabled:opacity-50"
-          >
-            {deleting ? "Deleting…" : "Delete Issue"}
-          </button>
+          {comments.length === 0 ? (
+            <p className="text-slate-500 text-sm">No comments yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {comments.map((c) => (
+                <div key={c._id} className="bg-slate-800/70 rounded-lg p-3">
+                  <p className="text-sm text-slate-200">{c.text}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {c.author?.name} •{" "}
+                    {new Date(c.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ADD COMMENT */}
+          <div className="pt-3 border-t border-slate-800">
+            <textarea
+              rows={3}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Write a comment…"
+              className="w-full rounded-md bg-slate-800 border border-slate-700 
+                         px-3 py-2 text-sm focus:outline-none focus:ring-2 
+                         focus:ring-indigo-500"
+            />
+
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={handleAddComment}
+                disabled={!commentText.trim() || postingComment}
+                className="px-4 py-2 text-sm rounded-md bg-indigo-600 
+                           hover:bg-indigo-500 disabled:opacity-50"
+              >
+                {postingComment ? "Posting…" : "Comment"}
+              </button>
+            </div>
+          </div>
         </section>
       </div>
 
@@ -131,27 +198,31 @@ export default function IssueDetails() {
           value={issue.assignee?.name || "Unassigned"}
         />
         <SidebarItem label="Created By" value={issue.createdBy?.name} />
+
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-500 mb-1">
             Status
           </p>
-
           <select
-            disabled={updatingStatus}
-            onChange={(e)=>setDraftStatus(e.target.value)}
             value={draftStatus}
-            className="w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-sm capitalize focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            onChange={(e) => setDraftStatus(e.target.value)}
+            disabled={updatingStatus}
+            className="w-full rounded-md bg-slate-800 border border-slate-700 
+                       px-3 py-2 text-sm capitalize focus:outline-none 
+                       focus:ring-2 focus:ring-indigo-500"
           >
             <option value="todo">To Do</option>
             <option value="in-progress">In Progress</option>
             <option value="done">Done</option>
           </select>
         </div>
+
         {draftStatus !== issue.status && (
           <button
             onClick={() => handleStatusChange(draftStatus)}
             disabled={updatingStatus}
-            className="mt-2 w-full rounded-md bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-sm font-medium disabled:opacity-50"
+            className="w-full rounded-md bg-indigo-600 hover:bg-indigo-500 
+                       px-3 py-2 text-sm font-medium disabled:opacity-50"
           >
             {updatingStatus ? "Updating…" : "Confirm Status Change"}
           </button>
@@ -164,7 +235,7 @@ export default function IssueDetails() {
   );
 }
 
-/* -------------------- helpers -------------------- */
+/* ---------------- HELPERS ---------------- */
 
 function SidebarItem({ label, value }) {
   return (
