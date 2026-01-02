@@ -113,24 +113,32 @@ issueRoutes.put("/:issueId", auth, issueAccess, async (req, res, next) => {
 });
 
  
-issueRoutes.patch("/:issueId/status", auth, issueAccess, async (req, res, next) => {
-  try {
-    const { status } = req.body;
+// PATCH /api/issues/:issueId/status
+issueRoutes.patch(
+  "/:issueId/status",
+  auth,
+  issueAccess,
+  async (req, res) => {
+    try {
+      const { status } = req.body;
 
-    if (!["todo", "in-progress", "done"].includes(status))
-      return res.status(400).json({ message: "Invalid status" });
+      if (!["todo", "in-progress", "done"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
 
-    const issue = await Issue.findById(req.params.issueId);
-    if (!issue) return res.status(404).json({ message: "Issue not found" });
+      const issue = await Issue.findByIdAndUpdate(
+        req.params.issueId,
+        { status },
+        { new: true }
+      ).populate("assignee createdBy", "name email");
 
-    issue.status = status;
-    await issue.save();
-
-    res.json(issue);
-  } catch (err) {
-    next(err);
+      return res.status(200).json(issue);
+    } catch (err) {
+      return res.status(500).json({ message: "Failed to update status" });
+    }
   }
-});
+);
+
 
  
 issueRoutes.delete("/:issueId", auth, projectOwnerOnly,  async (req, res, next) => {
