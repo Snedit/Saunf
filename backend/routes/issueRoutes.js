@@ -143,7 +143,7 @@ issueRoutes.patch(
  
 issueRoutes.delete("/:issueId", auth, issueAccess,  async (req, res, next) => {
   try {
-    const issue = req.params.issueId;
+    const issue = req.issue;
     if (!issue) return res.status(404).json({ message: "Issue not found" });
 
     await issue.deleteOne();
