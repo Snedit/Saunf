@@ -1,16 +1,36 @@
 import axios from "axios";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AddIssueModal({ projectId, onClose, onCreated }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState("Task");
-  const [priority, setPriority] = useState("Medium");
+  const [type, setType] = useState("task");
+  const [priority, setPriority] = useState("medium");
   const [status, setStatus] = useState("todo");
-  const [assignee, setAssignee] = useState(null); // 🔥 backend expects it
+
+  const [assignee, setAssignee] = useState("");
+  const [members, setMembers] = useState([]);
+
   const [loading, setLoading] = useState(false);
 
+  /* ---------------- FETCH PROJECT MEMBERS ---------------- */
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `http://localhost:5000/api/projects/${projectId}/members`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setMembers(res.data);
+      } catch (err) {
+        console.error("Failed to fetch members", err);
+      }
+    })();
+  }, [projectId]);
+
+  /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -23,21 +43,18 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
         {
           title,
           description,
-          type: type.toLowerCase(),
-          priority: priority.toLowerCase(),
+          type,
+          priority,
           status,
-          assignee, // null is fine
+          assignee: assignee || null, // send null if unassigned
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // push new issue into board
       onCreated(res.data);
-      // onClose();
+      onClose();
     } catch (err) {
       console.error("Issue creation failed:", err.response?.data || err);
     } finally {
@@ -61,14 +78,14 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Issue title"
             required
-            className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700"
           />
 
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description"
-            className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 focus:border-indigo-500 outline-none"
+            className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700"
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -77,9 +94,9 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
               onChange={(e) => setType(e.target.value)}
               className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
             >
-              <option>Task</option>
-              <option>Bug</option>
-              <option>Story</option>
+              <option value="task">Task</option>
+              <option value="bug">Bug</option>
+              <option value="story">Story</option>
             </select>
 
             <select
@@ -87,9 +104,9 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
               onChange={(e) => setPriority(e.target.value)}
               className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2"
             >
-              <option>Low</option>
-              <option>Medium</option>
-              <option>High</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
             </select>
           </div>
 
@@ -101,6 +118,20 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
             <option value="todo">To Do</option>
             <option value="in-progress">In Progress</option>
             <option value="done">Done</option>
+          </select>
+
+          {/* 🔥 ASSIGNEE */}
+          <select
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+            className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 w-full"
+          >
+            <option value="">Unassigned</option>
+            {members.map((m) => (
+              <option key={m._id} value={m._id}>
+                {m.name} ({m.email})
+              </option>
+            ))}
           </select>
         </div>
 
