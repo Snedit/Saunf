@@ -248,6 +248,29 @@ projectRoutes.delete(
     }
   }
 );
+projectRoutes.get(
+  "/:projectId/mywork",
+  auth,
+  projectAccess, // ensures user is a project member
+  async (req, res, next) => {
+    try {
+      const issues = await Issue.find({
+        projectId: req.project._id,
+        assignee: req.user._id,
+      })
+        .populate("assignee", "name email")
+        .populate("createdBy", "name email")
+        .sort({ createdAt: -1 });
+
+      res.status(200).json({
+        issues,
+        count: issues.length,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 
 export default projectRoutes;

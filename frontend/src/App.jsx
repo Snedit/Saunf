@@ -12,6 +12,7 @@ import Project from "./pages/Project";
 import ProjectMembers from "./pages/ProjectMembers";
 import Issues from "./pages/Issues";
 import IssueDetails from "./pages/IssueDetails";
+import MyWork from "./pages/MyWork";
 export default function App() {
   return (
     <Routes>
@@ -95,6 +96,16 @@ export default function App() {
           <AppLayout>
             <ProjectMembers />
           </AppLayout>
+        }
+      />
+            <Route
+        path="/project/:projectId/mywork"
+        element={
+          <RequireAuth>
+          <AppLayout>
+            <MyWork/>
+          </AppLayout>
+          </RequireAuth>
         }
       />
 

@@ -53,6 +53,8 @@ export default function Project() {
    setIsAddIssueOpen(false);
   };
 
+
+
   /* ---------------- RENDER ---------------- */
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -81,6 +83,15 @@ export default function Project() {
     >
       + New Issue
     </button>
+
+    <button
+       onClick={() => navigate(`/project/${projectId}/mywork`)}
+      className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 transition font-semibold shadow-lg shadow-indigo-600/30"
+    >
+      My Work
+    </button>
+
+
   </div>
 </div>
 
