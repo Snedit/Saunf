@@ -1,90 +1,126 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import CreateProjectModal from "../components/CreateProjectModal.jsx";
-
 
 export default function Dashboard() {
-  const [projects, setProjects] = useState([]);
+  const { projectId } = useParams();
+  const [stats, setStats] = useState(null);
+  const [recentIssues, setRecentIssues] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
-    async function fetchProjects() {
+    async function fetchDashboard() {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `http://localhost:5000/api/projects`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setProjects(res.data);
+
+        const [statsRes, issuesRes] = await Promise.all([
+          axios.get(
+            `http://localhost:5000/api/projects/${projectId}/stats`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          ),
+          axios.get(
+            `http://localhost:5000/api/projects/${projectId}/issues?limit=5`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          ),
+        ]);
+
+        setStats(statsRes.data);
+        setRecentIssues(issuesRes.data.issues || []);
       } catch (err) {
         console.error(err);
+        alert("Dashboard failed to load. Backend having a bad day.");
       } finally {
         setLoading(false);
       }
     }
-    fetchProjects();
-  }, []);
 
-  const handleProjectCreated = (project) => {
-    setProjects((prev) => [project, ...prev]);
-    setShowCreate(false);
-  };
+    fetchDashboard();
+  }, [projectId]);
 
   if (loading) {
     return (
       <div className="h-[60vh] flex items-center justify-center text-slate-400">
-        Loading projects…
+        Loading dashboard…
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-8 py-10">
+    <div className="px-8 py-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <h1 className="text-4xl font-bold">Your Projects</h1>
-          <p className="text-slate-400 mt-1">
-            Track progress, manage issues, ship faster.
-          </p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white">Project Dashboard</h1>
+        <p className="text-slate-400 mt-1">
+          Overview of what’s burning right now
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <StatCard label="Total Issues" value={stats.totalIssues} />
+        <StatCard label="Open Issues" value={stats.openIssues} />
+        <StatCard label="Completed" value={stats.doneIssues} />
+        <StatCard label="Members" value={stats.membersCount} />
+      </div>
+
+      {/* Recent Issues */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Recent Issues</h2>
+          <Link
+            to={`/project/${projectId}/issues`}
+            className="text-sm text-indigo-400 hover:underline"
+          >
+            View all →
+          </Link>
         </div>
 
-        <button
-          onClick={() => setShowCreate(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-600/30 transition"
-        >
-          + New Project
-        </button>
-      </div>
+        {recentIssues.length === 0 ? (
+          <p className="text-slate-400 text-sm">
+            No issues yet. Either perfect project or nobody’s working.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {recentIssues.map((issue) => (
+              <Link
+                key={issue._id}
+                to={`/issue/${issue._id}`}
+                className="block p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-white">{issue.title}</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {issue.type} • {issue.priority}
+                    </p>
+                  </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((p) => (
-          <Link
-            key={p._id}
-            to={`/project/${p._id}`}
-            className="group block bg-slate-900/80 p-6 rounded-2xl border border-slate-800 hover:border-indigo-500 transition"
-          >
-            <h3 className="text-lg font-semibold">{p.name}</h3>
-            <p className="text-slate-400 text-sm mt-2">
-              {p.issueCount ?? 0} issues
-            </p>
-          </Link>
-        ))}
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full ${
+                      issue.status === "done"
+                        ? "bg-green-500/20 text-green-400"
+                        : issue.status === "in-progress"
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : "bg-slate-500/20 text-slate-300"
+                    }`}
+                  >
+                    {issue.status}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
 
-      {/* Create Project Modal */}
-      {showCreate && (
-        <CreateProjectModal
-          onClose={() => setShowCreate(false)}
-          onCreated={handleProjectCreated}
-        />
-      )}
+function StatCard({ label, value }) {
+  return (
+    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+      <p className="text-slate-400 text-sm">{label}</p>
+      <p className="text-3xl font-bold text-white mt-2">{value ?? 0}</p>
     </div>
   );
 }
