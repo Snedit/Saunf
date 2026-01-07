@@ -272,5 +272,82 @@ projectRoutes.get(
   }
 );
 
+// GET PROJECT STATS
+projectRoutes.get(
+  "/:projectId/stats",
+  auth,
+  projectAccess,
+  async (req, res, next) => {
+    try {
+      const projectId = req.project._id;
+      const userId = req.user._id;
+
+      const stats = await Issue.aggregate([
+        {
+          $match: {
+            projectId,
+          },
+        },
+        {
+          $facet: {
+            total: [{ $count: "count" }],
+
+            byStatus: [
+              {
+                $group: {
+                  _id: "$status",
+                  count: { $sum: 1 },
+                },
+              },
+            ],
+
+            byPriority: [
+              {
+                $group: {
+                  _id: "$priority",
+                  count: { $sum: 1 },
+                },
+              },
+            ],
+
+            myWork: [
+              {
+                $match: {
+                  assignee: userId,
+                },
+              },
+              { $count: "count" },
+            ],
+          },
+        },
+      ]);
+
+      const result = stats[0];
+
+      res.json({
+        totalIssues: result.total[0]?.count || 0,
+
+        status: {
+          todo: result.byStatus.find(s => s._id === "todo")?.count || 0,
+          "in-progress":
+            result.byStatus.find(s => s._id === "in-progress")?.count || 0,
+          done: result.byStatus.find(s => s._id === "done")?.count || 0,
+        },
+
+        priority: {
+          low: result.byPriority.find(p => p._id === "low")?.count || 0,
+          medium: result.byPriority.find(p => p._id === "medium")?.count || 0,
+          high: result.byPriority.find(p => p._id === "high")?.count || 0,
+        },
+
+        myWork: result.myWork[0]?.count || 0,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+
 
 export default projectRoutes;

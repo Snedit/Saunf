@@ -19,7 +19,7 @@ export default function Dashboard() {
             { headers: { Authorization: `Bearer ${token}` } }
           ),
           axios.get(
-            `http://localhost:5000/api/projects/${projectId}/issues?limit=5`,
+            `http://localhost:5000/api/issues/project/${projectId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           ),
         ]);
