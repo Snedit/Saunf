@@ -2,44 +2,67 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useProject } from "../context/ProjectContext";
+
 
 export default function Login() {
+  const { setSelectedProject } = useProject();
   const navigate = useNavigate();
+  
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    if (!email || !password) {
-      return setError("Email and password are required");
+  if (!email || !password) {
+    return setError("Email and password are required");
+  }
+
+  try {
+    setLoading(true);
+
+    // 1. Login
+    const res = await axios.post(
+      "http://localhost:5000/api/auth/login",
+      { email, password }
+    );
+
+    const token = res.data.token;
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
+
+    // 2. Fetch projects
+    const projectsRes = await axios.get(
+      "http://localhost:5000/api/projects",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    const projects = projectsRes.data;
+
+    if (!projects.length) {
+      navigate("/projects"); // or create-project page
+      return;
     }
 
-    try {
-      setLoading(true);
+    // 3. Set context + redirect
+    setSelectedProject(projects[0]);
+    navigate(`/project/${projects[0]._id}/dashboard`);
 
-      const res = await axios.post(
-        `http://localhost:5000/api/auth/login`,
-        { email, password }
-      );
+  } catch (err) {
+    setError(err.response?.data?.message || "Login failed. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      // Save token
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-
-      navigate("/dashboard");
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-6">
