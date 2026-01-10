@@ -23,7 +23,7 @@ export default function AddIssueModal({ projectId, onClose, onCreated }) {
           `http://localhost:5000/api/projects/${projectId}/members`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setMembers(res.data);
+        setMembers(res.data.members);
       } catch (err) {
         console.error("Failed to fetch members", err);
       }

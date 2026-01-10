@@ -67,7 +67,7 @@ export default function MyWork() {
       {/* Empty state */}
       {issues.length === 0 && (
         <div className="text-center text-slate-500 py-20">
-          🎉 No issues assigned. Either you’re efficient or ignored.
+          🎉 No issues assigned. Either you’re efficient or forgotten.
         </div>
       )}
 
