@@ -13,7 +13,7 @@ import Project from "../models/ProjectSchema.js";
 import auth from "../middlewares/authMiddleware.js";
 
 const commentRoutes = Router();
-
+ 
 /* ---------------- ADD COMMENT ---------------- */
 commentRoutes.post("/", auth, async (req, res, next) => {
   try {

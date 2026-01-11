@@ -3,8 +3,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useProject } from "../context/ProjectContext";
 import CreateProjectModal from "./CreateProjectModal";
+import { useParams } from "react-router-dom";
+
 
 export default function ProjectSelector() {
+  const {projectId} = useParams();
+
   const { selectedProject, setSelectedProject } = useProject();
   const [projects, setProjects] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -47,7 +51,8 @@ export default function ProjectSelector() {
   return (
     <>
       <select
-        value={selectedProject?._id || ""}
+        // value={selectedProject?._id || ""}
+        value={projectId || ""}
         onChange={handleChange}
         className="w-full bg-slate-800 text-white px-3 py-2 rounded-lg text-sm"
       >

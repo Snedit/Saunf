@@ -34,7 +34,6 @@ export default function App() {
         }
       >
         {/* Issue details (project inferred) */}
-        <Route path="/issue/:issueId" element={<IssueDetails />} />
 
         {/* -------- PROJECT SCOPED -------- */}
         <Route path="/project/:projectId">
@@ -43,6 +42,7 @@ export default function App() {
           <Route path="issues" element={<Issues />} />
           <Route path="members" element={<ProjectMembers />} />
           <Route path="mywork" element={<MyWork />} />
+        <Route path="issue/:issueId" element={<IssueDetails />} />
         </Route>
       </Route>
 

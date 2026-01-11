@@ -38,6 +38,18 @@ export default function IssueDetails() {
     })();
   }, [issueId]);
 
+useEffect(() => {
+  (async () => {
+    const token = localStorage.getItem("token");
+    const res = await axios.get(
+      `http://localhost:5000/api/comments/issue/${issueId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setComments(res.data);
+  })();
+}, [issueId]);
+
+
   /* ---------------- DELETE ---------------- */
   const handleDelete = async () => {
     if (!confirm("Delete this issue? This action is irreversible.")) return;
@@ -79,19 +91,21 @@ export default function IssueDetails() {
   /* ---------------- COMMENT SUBMIT (UI ONLY) ---------------- */
   const handleAddComment = async () => {
     if (!commentText.trim()) return;
+    const token  = localStorage.getItem("token");
 
     setPostingComment(true);
 
     // TEMP: local UI append (replace with API later)
-    setComments((prev) => [
-      ...prev,
-      {
-        _id: Date.now(),
-        text: commentText,
-        author: { name: "You" },
-        createdAt: new Date(),
-      },
-    ]);
+    const response  = await axios.post("http://localhost:5000/api/comments", {
+      text: commentText, issueId
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+   setComments((prev) => [...prev, response.data]);
+
 
     setCommentText("");
     setPostingComment(false);

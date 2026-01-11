@@ -89,7 +89,8 @@ export default function Issues() {
           <motion.div
             key={issue._id}
             whileHover={{ backgroundColor: "rgba(99,102,241,0.05)" }}
-            onClick={() => navigate(`/issue/${issue._id}`)}
+            onClick={() => navigate(`/project/${issue.projectId}/issue/${issue._id}`)
+}
             className="grid grid-cols-12 px-6 py-4 text-sm cursor-pointer border-b border-slate-800 last:border-none"
           >
             <div className="col-span-4 font-medium">
