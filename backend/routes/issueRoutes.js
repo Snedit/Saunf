@@ -35,9 +35,8 @@ issueRoutes.get('/', auth, async (req, res, next) =>{
 // create issue for a particular project;
 issueRoutes.post("/:projectId", auth, projectAccess, async (req, res, next) => {
   try {
-    const { title, description, type, priority,  status } = req.body;
+    const { title, description, type, priority,  status, assignee } = req.body;
     const projectId = req.params.projectId;
-    const assignee = req.user._id;
     if (!title)
       return res.status(400).json({ message: "Title is required" });
 
