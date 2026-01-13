@@ -37,7 +37,17 @@ commentRoutes.post("/", auth, async (req, res, next) => {
       userId: req.user._id,
     });
 
-    res.status(201).json(comment);
+   return res.status(201).json({
+  _id: comment._id,
+  text: comment.text,
+  issueId: comment.issueId,
+  userId: {
+    _id: req.user._id,
+    name: req.user.name,
+  },
+  createdAt: comment.createdAt,
+});
+
   } catch (err) {
     next(err);
   }

@@ -46,6 +46,8 @@ useEffect(() => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
     setComments(res.data);
+    console.log(res.data);
+    
   })();
 }, [issueId]);
 
@@ -171,7 +173,7 @@ useEffect(() => {
                 <div key={c._id} className="bg-slate-800/70 rounded-lg p-3">
                   <p className="text-sm text-slate-200">{c.text}</p>
                   <p className="text-xs text-slate-500 mt-1">
-                    {c.author?.name} •{" "}
+                    {c.userId?.name} •{" "}
                     {new Date(c.createdAt).toLocaleString()}
                   </p>
                 </div>
