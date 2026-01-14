@@ -89,6 +89,20 @@ useEffect(() => {
       setUpdatingStatus(false);
     }
   };
+  //helper replies
+
+  const topLevelComments = comments.filter(
+  (c) => !c.parentComment
+);
+
+const repliesMap = comments.reduce((acc, c) => {
+  if (c.parentComment) {
+    acc[c.parentComment] = acc[c.parentComment] || [];
+    acc[c.parentComment].push(c);
+  }
+  return acc;
+}, {});
+
 
   /* ---------------- COMMENT SUBMIT (UI ONLY) ---------------- */
   const handleAddComment = async () => {
@@ -99,7 +113,7 @@ useEffect(() => {
 
     // TEMP: local UI append (replace with API later)
     const response  = await axios.post("http://localhost:5000/api/comments", {
-      text: commentText, issueId
+      text: commentText, issueId, 
     }, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -169,15 +183,31 @@ useEffect(() => {
             <p className="text-slate-500 text-sm">No comments yet.</p>
           ) : (
             <div className="space-y-3">
-              {comments.map((c) => (
-                <div key={c._id} className="bg-slate-800/70 rounded-lg p-3">
-                  <p className="text-sm text-slate-200">{c.text}</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {c.userId?.name} •{" "}
-                    {new Date(c.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              ))}
+           {topLevelComments.map((c) => (
+  <div key={c._id} className="space-y-3">
+    {/* Comment */}
+    <div className="bg-slate-800/70 rounded-lg p-3">
+      <p className="text-sm text-slate-200">{c.text}</p>
+      <p className="text-xs text-slate-500 mt-1">
+        {c.user?.name} • {new Date(c.createdAt).toLocaleString()}
+      </p>
+    </div>
+
+    {/* Replies */}
+    {repliesMap[c._id]?.map((r) => (
+      <div
+        key={r._id}
+        className="ml-6 bg-slate-900/80 border border-slate-700 rounded-lg p-3"
+      >
+        <p className="text-sm text-slate-200">{r.text}</p>
+        <p className="text-xs text-slate-500 mt-1">
+          {r.user?.name} • {new Date(r.createdAt).toLocaleString()}
+        </p>
+      </div>
+    ))}
+  </div>
+))}
+
             </div>
           )}
 
