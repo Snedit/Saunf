@@ -15,9 +15,14 @@ const commentSchema = new Schema(
       ref: "User",
       required: true,
     },
+
+    parentComment: {
+      type: Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null, // null = top-level comment
+    },
   },
   { timestamps: true }
 );
 
-const Comment = model("Comment", commentSchema);
-export default Comment;
+export default model("Comment", commentSchema);
