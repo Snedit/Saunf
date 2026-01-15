@@ -127,9 +127,9 @@ export default function Issues() {
         )}
       </div>
 
-      {showAddModal && selectedProject && (
+      {showAddModal && projectId && (
         <AddIssueModal
-          projectId={selectedProject._id}
+          projectId={ projectId}
           onClose={() => setShowAddModal(false)}
           onCreated={handleIssueCreated}
         />

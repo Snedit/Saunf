@@ -11,7 +11,8 @@ export default function IssueDetails() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-
+  const [replyTo, setReplyTo] =  useState(null);
+  const [replyText, setReplyText] = useState("");
   const [draftStatus, setDraftStatus] = useState(null);
 
   /* ---------------- COMMENTS (UI ONLY) ---------------- */
@@ -105,27 +106,39 @@ const repliesMap = comments.reduce((acc, c) => {
 
 
   /* ---------------- COMMENT SUBMIT (UI ONLY) ---------------- */
-  const handleAddComment = async () => {
-    if (!commentText.trim()) return;
-    const token  = localStorage.getItem("token");
+const handleAddComment = async (parentComment = null) => {
+  const text = parentComment ? replyText : commentText;
+  if (!text.trim()) return;
 
-    setPostingComment(true);
+  const token = localStorage.getItem("token");
+  try{
 
-    // TEMP: local UI append (replace with API later)
-    const response  = await axios.post("http://localhost:5000/api/comments", {
-      text: commentText, issueId, 
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    
-   setComments((prev) => [...prev, response.data]);
+  
+  setPostingComment(true);
 
+  const res = await axios.post(
+    "http://localhost:5000/api/comments",
+    { text, issueId, parentComment },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
 
-    setCommentText("");
-    setPostingComment(false);
-  };
+  setComments((prev) => [...prev, res.data]);
+
+  setCommentText("");
+  setReplyText("");
+  setReplyTo(null);
+ 
+}
+catch(err)
+{
+  console.log(err);
+
+} 
+finally{
+  setPostingComment(false);
+}
+};
+
 
   /* ---------------- STATES ---------------- */
   if (loading)
@@ -184,13 +197,50 @@ const repliesMap = comments.reduce((acc, c) => {
           ) : (
             <div className="space-y-3">
            {topLevelComments.map((c) => (
-  <div key={c._id} className="space-y-3">
-    {/* Comment */}
-    <div className="bg-slate-800/70 rounded-lg p-3">
-      <p className="text-sm text-slate-200">{c.text}</p>
-      <p className="text-xs text-slate-500 mt-1">
-        {c.user?.name} • {new Date(c.createdAt).toLocaleString()}
+        <div key={c._id} className="space-y-3">
+          {/* Comment */}
+       
+          <div className="bg-slate-800/70 rounded-lg p-3">
+            <p className="text-sm text-slate-200">{c.text}</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {c.user?.name} • {new Date(c.createdAt).toLocaleString()}
       </p>
+      <button
+  onClick={() => setReplyTo(c._id)}
+  className="text-xs text-indigo-400 hover:underline mt-2"
+>
+  Reply
+</button>
+{replyTo === c._id && (
+  <div className="ml-6 mt-3">
+    <textarea
+      rows={2}
+      value={replyText}
+      onChange={(e) => setReplyText(e.target.value)}
+      placeholder={`Reply to ${c.user?.name}...`}
+      className="w-full rounded-md bg-slate-800 border border-slate-700 
+                 px-3 py-2 text-sm focus:outline-none focus:ring-2 
+                 focus:ring-indigo-500"
+    />
+
+    <div className="flex gap-2 mt-2">
+      <button
+        onClick={() => handleAddComment(c._id)}
+        className="px-3 py-1 text-xs rounded-md bg-indigo-600 hover:bg-indigo-500"
+      >
+        Reply
+      </button>
+
+      <button
+        onClick={() => setReplyTo(null)}
+        className="px-3 py-1 text-xs text-slate-400"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
     </div>
 
     {/* Replies */}
